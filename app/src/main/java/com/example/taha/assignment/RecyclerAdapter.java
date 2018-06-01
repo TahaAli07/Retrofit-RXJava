@@ -28,9 +28,9 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.Myhold
     public void onBindViewHolder(Myholder holder, int position) {
 
         CountryModel countryModel = list.get(position);
-        holder.rank_txtView.setText(String.valueOf(countryModel.getRank()));
-        holder.country_txtView.setText(countryModel.getCountry());
-        holder.population_txtView.setText(String.valueOf(countryModel.getPopulation()));
+        holder.rank_txtView.setText("RANK - "+String.valueOf(countryModel.getRank()));
+        holder.country_txtView.setText("COUNTRY - "+countryModel.getCountry());
+        holder.population_txtView.setText("POPULATION - "+String.valueOf(countryModel.getPopulation()));
         String image1 = countryModel.getImage();
         Picasso.get().load(image1).into(holder.imageView);
 
@@ -50,10 +50,13 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.Myhold
 
         public Myholder(View itemView) {
             super(itemView);
+
             imageView = (ImageView) itemView.findViewById(R.id.imageCountry);
             rank_txtView = (TextView) itemView.findViewById(R.id.rank);
             country_txtView = (TextView) itemView.findViewById(R.id.country);
             population_txtView = (TextView) itemView.findViewById(R.id.population);
+
+
         }
     }
 }
