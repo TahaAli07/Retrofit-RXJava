@@ -8,6 +8,7 @@ import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.provider.ContactsContract;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -19,20 +20,26 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.Toast;
+
 import com.opencsv.CSVWriter;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+
 import ir.mahdi.mzip.zip.ZipArchive;
 import okhttp3.ResponseBody;
 import retrofit2.Retrofit;
 import retrofit2.adapter.rxjava.RxJavaCallAdapterFactory;
 import retrofit2.converter.gson.GsonConverterFactory;
+import rx.Observable;
 import rx.Observer;
+import rx.Subscriber;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.schedulers.Schedulers;
 
@@ -43,6 +50,7 @@ public class MainActivity extends AppCompatActivity {
     String responseString;
     JSONObject jsonObject;
     Button btn_saveContacts;
+    Boolean permissionsBool;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -84,7 +92,6 @@ public class MainActivity extends AppCompatActivity {
                         1);
             }
         });
-
 
     }
 
@@ -195,11 +202,14 @@ public class MainActivity extends AppCompatActivity {
                 if (grantResults.length > 0
                         && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     // permission was granted
-                    saveContacts();
+                    permissionsBool = true;
+                    doBackgroundTasks();
+
                 } else {
 
+                    permissionsBool = false;
                     // permission denied
-                    Toast.makeText(MainActivity.this, "Permissions are Denied", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(MainActivity.this, "Permissions are Denied", Toast.LENGTH_LONG).show();
                 }
                 return;
             }
@@ -207,53 +217,89 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    public void saveContacts() {
+    public void doBackgroundTasks() {
 
-        //getting out contacts in a cursor
-        Cursor cursor = getContentResolver().query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI, null, null, null, null);
-        Log.d("TAHA CURSOR COUNT", String.valueOf(cursor.getCount()));
+        //Observable
+        Observable<String> myObservable = Observable.create(
+                new Observable.OnSubscribe<String>() {
+                    @Override
+                    public void call(Subscriber<? super String> sub) {
 
-        List<String[]> data = new ArrayList<String[]>();
+                        //Doing all stuff to do in background
+                        //getting out contacts in a cursor
+                        Cursor cursor = getContentResolver().query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI, null, null, null, null);
+                        Log.d("TAHA CURSOR COUNT", String.valueOf(cursor.getCount()));
 
-        String csv = android.os.Environment.getExternalStorageDirectory().getAbsolutePath().concat("/contacts.csv");
-        CSVWriter writer = null;
-        try {
-            writer = new CSVWriter(new FileWriter(csv));
-        } catch (IOException e) {
-            Log.d("TAHA NULL CSV WRIER", e.getMessage());
-            e.printStackTrace();
-        }
+                        List<String[]> data = new ArrayList<String[]>();
 
-        //Storing id, name , number in List "data"
-        while (cursor.moveToNext()) {
+                        String csv = android.os.Environment.getExternalStorageDirectory().getAbsolutePath().concat("/contacts.csv");
+                        CSVWriter writer = null;
+                        try {
+                            writer = new CSVWriter(new FileWriter(csv));
+                        } catch (IOException e) {
+                            Log.d("TAHA NULL CSV WRIER", e.getMessage());
+                            e.printStackTrace();
+                        }
 
-            String id = cursor.getString(cursor.getColumnIndex(ContactsContract.Contacts._ID));
-            String name = cursor.getString(cursor.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME));
-            String phoneNumber = cursor.getString(cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER));
+                        //Storing id, name , number in List "data"
+                        while (cursor.moveToNext()) {
 
-            data.add(new String[]{id, name, phoneNumber});
+                            String id = cursor.getString(cursor.getColumnIndex(ContactsContract.Contacts._ID));
+                            String name = cursor.getString(cursor.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME));
+                            String phoneNumber = cursor.getString(cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER));
 
-        }
+                            data.add(new String[]{id, name, phoneNumber});
 
-        //Writing List "data" to CSV
-        if (writer != null) {
-            writer.writeAll(data);
-            Toast.makeText(this, "SUCCESSFULLY CREATED CSV FROM CONTACTS", Toast.LENGTH_SHORT).show();
-        } else {
-            Toast.makeText(this, "COULD NOT SAVE CONTACTS TO CSV", Toast.LENGTH_SHORT).show();
-        }
+                        }
 
-        //Closing cursor and writer
-        cursor.close();
-        try {
-            writer.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+                        //Writing List "data" to CSV
+                        if (writer != null) {
+                            writer.writeAll(data);
+                        } else {
+                        }
 
-        ZipArchive zipArchive = new ZipArchive();
-        zipArchive.zip(android.os.Environment.getExternalStorageDirectory().getAbsolutePath().concat("/contacts.csv")
-                ,android.os.Environment.getExternalStorageDirectory().getAbsolutePath().concat("/contacts.zip"),"");
+                        //Closing cursor and writer
+                        cursor.close();
+                        try {
+                            writer.close();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+
+                        ZipArchive zipArchive = new ZipArchive();
+                        zipArchive.zip(android.os.Environment.getExternalStorageDirectory().getAbsolutePath().concat("/contacts.csv")
+                                , android.os.Environment.getExternalStorageDirectory().getAbsolutePath().concat("/contacts.zip"), "");
+
+
+                        // Trigger the completion of the event
+                        sub.onCompleted();
+                    }
+                }
+        );
+
+        //Subscribing observer to the observable
+        myObservable
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Observer<String>() {
+                    @Override
+                    public void onNext(String s) {
+                    }
+
+                    @Override
+                    public void onCompleted() {
+                        //Showing Snackbar on Completion
+                        Snackbar snackbar = Snackbar.make(findViewById(android.R.id.content), ".Zip has been saved to the Root Directory of Your Phone", Snackbar.LENGTH_LONG);
+                        snackbar.show();
+
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+                        Log.d("TAHA", e.getMessage());
+                        e.printStackTrace();
+                    }
+                });
 
     }
 }

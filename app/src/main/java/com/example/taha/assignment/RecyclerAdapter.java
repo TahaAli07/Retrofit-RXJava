@@ -6,7 +6,9 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
+
 import com.squareup.picasso.Picasso;
+
 import java.util.List;
 
 //A custom adapter class for the Recycler View
@@ -29,9 +31,9 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.Myhold
     public void onBindViewHolder(Myholder holder, int position) {
 
         CountryModel countryModel = list.get(position);
-        holder.rank_txtView.setText("RANK - "+String.valueOf(countryModel.getRank()));
-        holder.country_txtView.setText("COUNTRY - "+countryModel.getCountry());
-        holder.population_txtView.setText("POPULATION - "+String.valueOf(countryModel.getPopulation()));
+        holder.rank_txtView.setText("RANK - " + String.valueOf(countryModel.getRank()));
+        holder.country_txtView.setText("COUNTRY - " + countryModel.getCountry());
+        holder.population_txtView.setText("POPULATION - " + String.valueOf(countryModel.getPopulation()));
         String image1 = countryModel.getImage();
 
         //Picasso
