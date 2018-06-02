@@ -5,11 +5,9 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.graphics.Bitmap;
-import android.graphics.Path;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.provider.ContactsContract;
-import android.provider.MediaStore;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -21,32 +19,16 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.Toast;
-
 import com.opencsv.CSVWriter;
-
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStream;
-import java.net.URI;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
-import java.util.zip.ZipInputStream;
-import java.util.zip.ZipOutputStream;
-
+import ir.mahdi.mzip.zip.ZipArchive;
 import okhttp3.ResponseBody;
-import okhttp3.internal.io.FileSystem;
 import retrofit2.Retrofit;
 import retrofit2.adapter.rxjava.RxJavaCallAdapterFactory;
 import retrofit2.converter.gson.GsonConverterFactory;
@@ -269,79 +251,9 @@ public class MainActivity extends AppCompatActivity {
             e.printStackTrace();
         }
 
-        FileHelper fileHelper = new FileHelper();
+        ZipArchive zipArchive = new ZipArchive();
+        zipArchive.zip(android.os.Environment.getExternalStorageDirectory().getAbsolutePath().concat("/contacts.csv")
+                ,android.os.Environment.getExternalStorageDirectory().getAbsolutePath().concat("/contacts.zip"),"");
 
-        fileHelper.zip(android.os.Environment.getExternalStorageDirectory().getAbsolutePath().concat("/contacts.csv")
-                , android.os.Environment.getExternalStorageDirectory().getAbsolutePath(), "TAHACONTACTS.zip"
-                , false);
-
-        /*File file = new File(android.os.Environment.getExternalStorageDirectory().getAbsolutePath().concat("/contacts.zip"));
-        addFilesToZip(file
-                ,new File[]{new File(android.os.Environment.getExternalStorageDirectory().getAbsolutePath().concat("/contacts.csv"))});*/
-
-    }
-
-    private void storeZIP() throws IOException {
-
-        FileInputStream fis = null;
-        try {
-            fis = new FileInputStream(android.os.Environment.getExternalStorageDirectory().getAbsolutePath().concat("/contacts.csv"));
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        }
-
-        FileOutputStream fos = null;
-        try {
-            fos = new FileOutputStream("contacts.csv");
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        }
-        ZipOutputStream zos = new ZipOutputStream(fos);
-
-        ZipEntry ze = new ZipEntry("contacts.csv");
-
-        zos.putNextEntry(ze);
-        zos.closeEntry();
-        zos.close();
-
-        fis.close();
-        fos.close();
-
-    }
-
-    public static void addFilesToZip(File source, File[] files) {
-        try {
-            File tmpZip = File.createTempFile(source.getName(), null);
-            tmpZip.delete();
-            if (!source.renameTo(tmpZip)) {
-                throw new Exception("Could not make temp file (" + source.getName() + ")");
-            }
-            byte[] buffer = new byte[1024 * 100000];
-            ZipInputStream zin = new ZipInputStream(new FileInputStream(tmpZip));
-            ZipOutputStream out = new ZipOutputStream(new FileOutputStream(source));
-
-            for (int i = 0; i < files.length; i++) {
-                InputStream in = new FileInputStream(files[i]);
-                out.putNextEntry(new ZipEntry(files[i].getName()));
-                for (int read = in.read(buffer); read > -1; read = in.read(buffer)) {
-                    out.write(buffer, 0, read);
-                }
-                out.closeEntry();
-                in.close();
-            }
-
-            for (ZipEntry ze = zin.getNextEntry(); ze != null; ze = zin.getNextEntry()) {
-                out.putNextEntry(ze);
-                for (int read = zin.read(buffer); read > -1; read = zin.read(buffer)) {
-                    out.write(buffer, 0, read);
-                }
-                out.closeEntry();
-            }
-
-            out.close();
-            tmpZip.delete();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
     }
 }
