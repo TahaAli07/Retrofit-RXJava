@@ -1,5 +1,6 @@
 package com.example.taha.assignment;
 
+//A model class for Country
 public class CountryModel {
 
     int rank;

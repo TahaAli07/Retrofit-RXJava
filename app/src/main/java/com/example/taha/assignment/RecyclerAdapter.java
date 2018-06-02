@@ -9,6 +9,7 @@ import android.widget.TextView;
 import com.squareup.picasso.Picasso;
 import java.util.List;
 
+//A custom adapter class for the Recycler View
 public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.Myholder> {
 
     List<CountryModel> list;
@@ -32,6 +33,8 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.Myhold
         holder.country_txtView.setText("COUNTRY - "+countryModel.getCountry());
         holder.population_txtView.setText("POPULATION - "+String.valueOf(countryModel.getPopulation()));
         String image1 = countryModel.getImage();
+
+        //Picasso
         Picasso.get().load(image1).into(holder.imageView);
 
     }

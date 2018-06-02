@@ -6,7 +6,6 @@ import retrofit2.http.Streaming;
 import retrofit2.http.Url;
 import rx.Observable;
 
-
 public interface Api {
 
     @Streaming
