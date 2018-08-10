@@ -60,6 +60,8 @@ public class MainActivity extends AppCompatActivity {
         recyclerView = (RecyclerView) findViewById(R.id.recyclerView);
         btn_saveContacts = (Button) findViewById(R.id.saveContacts);
 
+
+
         getCountryData();
 
         //Item touch Listener fo the recycler view
